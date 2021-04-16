@@ -9,6 +9,8 @@ on:
 env:
   # Minimum supported Rust version.
   msrv: 1.51.0
+  # Nightly Rust necessary for the no-std job.
+  nightly: nightly-2021-04-15
 
 jobs:
   build-msrv:
@@ -81,10 +83,41 @@ jobs:
           command: test
           args: --all --all-features --doc
 
+  # Checks that the crate actually builds without `std`. To do this,
+  # we take a target (`thumbv7m-none-eabi`) that does not have `std` support.
+  build-nostd:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-nostd-cargo-build-target
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.nightly }}
+          profile: minimal
+          override: true
+          target: thumbv7m-none-eabi
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --lib --target thumbv7m-none-eabi -Z avoid-dev-deps
+
   document:
     needs:
       - build
       - build-msrv
+      - build-nostd
     runs-on: ubuntu-latest
 
     steps:
