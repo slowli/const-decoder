@@ -1,4 +1,4 @@
-# Hex / Base64 Decoders as Constant Functions
+# Constant Functions for Hex / Base64 Decoding
 
 [![Build Status](https://github.com/slowli/const-decoder/workflows/Rust/badge.svg?branch=master)](https://github.com/slowli/const-decoder/actions)
 [![License: MIT OR Apache-2.0](https://img.shields.io/github/license/slowli/const-decoder.svg)](https://github.com/slowli/const-decoder#license)
@@ -7,7 +7,7 @@
 **Documentation:**
 [![crate docs (master)](https://img.shields.io/badge/master-yellow.svg?label=docs)](https://slowli.github.io/const-decoder/const_decoder/)
 
-Converting hex- and base64-encoded strings into bytes as constant functions.
+Constant functions for converting hex- and base64-encoded strings into bytes.
 Works on stable Rust and in no-std environments.
 
 ## Usage

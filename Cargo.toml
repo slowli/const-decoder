@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 keywords = ["base64", "hex", "decoding"]
 categories = ["encoding", "no-std"]
-description = "Converting hex- and base64-encoded strings into bytes as constant functions"
+description = "Constant functions for converting hex- and base64-encoded strings into bytes"
 repository = "https://github.com/slowli/const-decoder"
 
 [dev-dependencies]
