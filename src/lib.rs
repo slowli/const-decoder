@@ -390,6 +390,9 @@ impl Pem {
     }
 }
 
+#[cfg(doctest)]
+doc_comment::doctest!("../README.md");
+
 #[cfg(test)]
 mod tests {
     use super::*;

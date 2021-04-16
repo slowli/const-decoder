@@ -12,6 +12,8 @@ repository = "https://github.com/slowli/const-decoder"
 
 [dev-dependencies]
 base64 = "0.13.0"
+doc-comment = "0.3.3"
 hex = "0.4.3"
 pem = "0.8.3"
 rand = "0.8.3"
+version-sync = "0.9.2"
