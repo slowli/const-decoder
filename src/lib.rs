@@ -1,4 +1,4 @@
-//! Converting hex- and base64-encoded strings into bytes as constant functions.
+//! Constant functions for converting hex- and base64-encoded strings into bytes.
 //! Works on stable Rust and in no-std environments.
 //!
 //! [`Decoder`] is the base type encapsulating decoding logic, with [`SkipWhitespace`]
@@ -244,7 +244,7 @@ pub enum Decoder {
 }
 
 impl Decoder {
-    /// Marks that this coder
+    /// Marks that this coder should skip whitespace chars rather than panic on them.
     pub const fn skip_whitespace(self) -> SkipWhitespace {
         SkipWhitespace(self)
     }
