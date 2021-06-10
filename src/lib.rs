@@ -52,7 +52,7 @@
 //! # macro_rules! include_bytes {
 //! #     ($path:tt) => { &[b'A'; 1184] };
 //! # }
-//! const CERT: &[u8] = &Pem::parse::<888>(include_bytes!("certificate.crt"));
+//! const CERT: &[u8] = &Pem::decode::<888>(include_bytes!("certificate.crt"));
 //! ```
 //!
 //! Naturally, all code works in the runtime context as well, although panic messages
@@ -144,69 +144,40 @@ impl HexDecoderState {
 
 /// Internal state of a Base64 decoder.
 #[derive(Debug, Clone, Copy)]
-struct Base64DecoderState {
-    url_safe: bool,
+struct CustomDecoderState {
+    table: Encoding,
     partial_byte: u8,
     filled_bits: u8,
 }
 
-impl Base64DecoderState {
-    #[allow(unconditional_panic)]
-    // ^-- Required since ordinary `panic`s are not yet stable in const context
-    const fn byte_value(url_safe: bool, val: u8) -> u8 {
-        match val {
-            b'A'..=b'Z' => val - b'A',
-            b'a'..=b'z' => val - b'a' + 26,
-            b'0'..=b'9' => val - b'0' + 52,
-            b'+' if !url_safe => 62,
-            b'-' if url_safe => 62,
-            b'/' if !url_safe => 63,
-            b'_' if url_safe => 63,
-            _ => {
-                const_assert!(false, "Invalid character in input; expected a Base64 digit");
-                0 // unreachable
-            }
-        }
-    }
-
-    const fn new(url_safe: bool) -> Self {
+impl CustomDecoderState {
+    const fn new(table: Encoding) -> Self {
         Self {
-            url_safe,
+            table,
             partial_byte: 0,
             filled_bits: 0,
         }
     }
 
+    #[allow(clippy::comparison_chain)] // not feasible in const context
     const fn update(mut self, byte: u8) -> (Self, Option<u8>) {
-        if byte == b'=' {
-            return (self, None);
-        }
-
-        let byte = Self::byte_value(self.url_safe, byte);
-        let output = match self.filled_bits {
-            0 | 1 => {
-                self.partial_byte = (self.partial_byte << 6) + byte;
-                self.filled_bits += 6;
-                None
-            }
-            2 => {
-                let output = (self.partial_byte << 6) + byte;
-                self.partial_byte = 0;
-                self.filled_bits = 0;
-                Some(output)
-            }
-            3..=7 => {
-                let remaining_bits = 8 - self.filled_bits; // in 1..=5
-                let new_filled_bits = 6 - remaining_bits;
-                let output = (self.partial_byte << remaining_bits) + (byte >> new_filled_bits);
-                self.partial_byte = byte % (1 << new_filled_bits);
-                self.filled_bits = new_filled_bits;
-                Some(output)
-            }
-
-            // This is unreachable, but `unreachable` / `unreachable_unchecked` are
-            // not stable in the const context.
-            _ => None,
+        let byte = self.table.lookup(byte);
+        let output = if self.filled_bits < 8 - self.table.bits_per_char {
+            self.partial_byte = (self.partial_byte << self.table.bits_per_char) + byte;
+            self.filled_bits += self.table.bits_per_char;
+            None
+        } else if self.filled_bits == 8 - self.table.bits_per_char {
+            let output = (self.partial_byte << self.table.bits_per_char) + byte;
+            self.partial_byte = 0;
+            self.filled_bits = 0;
+            Some(output)
+        } else {
+            let remaining_bits = 8 - self.filled_bits;
+            let new_filled_bits = self.table.bits_per_char - remaining_bits;
+            let output = (self.partial_byte << remaining_bits) + (byte >> new_filled_bits);
+            self.partial_byte = byte % (1 << new_filled_bits);
+            self.filled_bits = new_filled_bits;
+            Some(output)
         };
         (self, output)
     }
@@ -216,7 +187,8 @@ impl Base64DecoderState {
 #[derive(Debug, Clone, Copy)]
 enum DecoderState {
     Hex(HexDecoderState),
-    Base64(Base64DecoderState),
+    Base64(CustomDecoderState),
+    Custom(CustomDecoderState),
 }
 
 impl DecoderState {
@@ -227,8 +199,16 @@ impl DecoderState {
                 (Self::Hex(updated_state), output)
             }
             Self::Base64(state) => {
+                if byte == b'=' {
+                    (self, None)
+                } else {
+                    let (updated_state, output) = state.update(byte);
+                    (Self::Base64(updated_state), output)
+                }
+            }
+            Self::Custom(state) => {
                 let (updated_state, output) = state.update(byte);
-                (Self::Base64(updated_state), output)
+                (Self::Custom(updated_state), output)
             }
         }
     }
@@ -239,7 +219,7 @@ impl DecoderState {
 /// # Examples
 ///
 /// See the [crate docs](index.html) for examples of usage.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub enum Decoder {
     /// Hexadecimal decoder. Supports uppercase and lowercase digits.
     Hex,
@@ -253,6 +233,8 @@ pub enum Decoder {
     ///
     /// [RFC 3548]: https://datatracker.ietf.org/doc/html/rfc3548.html
     Base64Url,
+    /// Decoder based on a custom encoding.
+    Custom(Encoding),
 }
 
 impl Decoder {
@@ -264,8 +246,9 @@ impl Decoder {
     const fn new_state(self) -> DecoderState {
         match self {
             Self::Hex => DecoderState::Hex(HexDecoderState::new()),
-            Self::Base64 => DecoderState::Base64(Base64DecoderState::new(false)),
-            Self::Base64Url => DecoderState::Base64(Base64DecoderState::new(true)),
+            Self::Base64 => DecoderState::Base64(CustomDecoderState::new(Encoding::BASE64)),
+            Self::Base64Url => DecoderState::Base64(CustomDecoderState::new(Encoding::BASE64_URL)),
+            Self::Custom(encoding) => DecoderState::Custom(CustomDecoderState::new(encoding)),
         }
     }
 
@@ -313,7 +296,7 @@ impl Decoder {
 ///
 /// ```
 /// # use const_decoder::{Decoder, SkipWhitespace};
-/// const KEY: [u8; 64] = SkipWhitespace(Decoder::Hex).parse(b"
+/// const KEY: [u8; 64] = SkipWhitespace(Decoder::Hex).decode(b"
 ///     9e55d1e1 aa1f455b 8baad9fd f9755036 55f8b359 d542fa7e
 ///     4ce84106 d625b352 06fac1f2 2240cffd 637ead66 47188429
 ///     fafda9c9 cb7eae43 386ac17f 61115075
@@ -321,7 +304,7 @@ impl Decoder {
 /// # assert_eq!(KEY[0], 0x9e);
 /// # assert_eq!(KEY[63], 0x75);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub struct SkipWhitespace(pub Decoder);
 
 impl SkipWhitespace {
@@ -331,7 +314,7 @@ impl SkipWhitespace {
     ///
     /// - Panics if the provided length is insufficient or too large for `input`.
     /// - Panics if `input` contains invalid chars.
-    pub const fn parse<const N: usize>(self, input: &[u8]) -> [u8; N] {
+    pub const fn decode<const N: usize>(self, input: &[u8]) -> [u8; N] {
         self.0.do_decode(input, Some(Skipper::Whitespace))
     }
 }
@@ -382,7 +365,7 @@ impl Skipper {
 /// # use const_decoder::Pem;
 /// // X.25519 private key generated using OpenSSL:
 /// // `openssl genpkey -algorithm X25519`.
-/// const PRIVATE_KEY: [u8; 48] = Pem::parse(
+/// const PRIVATE_KEY: [u8; 48] = Pem::decode(
 ///     b"-----BEGIN PRIVATE KEY-----
 ///       MC4CAQAwBQYDK2VuBCIEINAOV4yAyaoM2wmJPApQs3byDhw7oJRG47V0VHwGnctD
 ///       -----END PRIVATE KEY-----",
@@ -398,13 +381,75 @@ impl Pem {
     ///
     /// - Panics if the provided length is insufficient or too large for `input`.
     /// - Panics if `input` contains invalid chars.
-    pub const fn parse<const N: usize>(input: &[u8]) -> [u8; N] {
+    pub const fn decode<const N: usize>(input: &[u8]) -> [u8; N] {
         Decoder::Base64.do_decode(input, Some(Skipper::Pem))
     }
 }
 
 #[cfg(doctest)]
 doc_comment::doctest!("../README.md");
+
+/// FIXME
+#[derive(Debug, Clone, Copy)]
+pub struct Encoding {
+    table: [u8; 128],
+    bits_per_char: u8,
+}
+
+impl Encoding {
+    const NO_MAPPING: u8 = u8::MAX;
+
+    const BASE64: Self =
+        Self::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+    const BASE64_URL: Self =
+        Self::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_");
+
+    /// FIXME
+    #[allow(unconditional_panic, clippy::cast_possible_truncation)]
+    pub const fn new(alphabet: &str) -> Self {
+        let bits_per_char = match alphabet.len() {
+            2 => 1,
+            4 => 2,
+            8 => 3,
+            16 => 4,
+            32 => 5,
+            64 => 6,
+            _ => {
+                const_assert!(false, "Invalid alphabet length; must be a power of 2");
+                0 // unreachable
+            }
+        };
+
+        let mut table = [Self::NO_MAPPING; 128];
+        let alphabet_bytes = alphabet.as_bytes();
+        let mut index = 0;
+        while index < alphabet_bytes.len() {
+            let byte = alphabet_bytes[index];
+            const_assert!(byte < 0x80, "Non-ASCII alphabet character");
+            let byte_idx = byte as usize;
+            const_assert!(
+                table[byte_idx] == Self::NO_MAPPING,
+                "Character is mentioned several times"
+            );
+            table[byte_idx] = index as u8;
+            index += 1;
+        }
+
+        Self {
+            table,
+            bits_per_char,
+        }
+    }
+
+    const fn lookup(&self, ascii_char: u8) -> u8 {
+        let mapping = self.table[ascii_char as usize];
+        const_assert!(
+            mapping != Self::NO_MAPPING,
+            "Char is not present in the alphabet"
+        );
+        mapping
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -418,7 +463,7 @@ mod tests {
 
     #[test]
     fn hex_codec_with_whitespace() {
-        const KEY: [u8; 4] = Decoder::Hex.skip_whitespace().parse(b"12\n34  56\t7f");
+        const KEY: [u8; 4] = Decoder::Hex.skip_whitespace().decode(b"12\n34  56\t7f");
         assert_eq!(KEY, [0x12, 0x34, 0x56, 0x7f]);
     }
 
@@ -478,5 +523,45 @@ mod tests {
     #[should_panic]
     fn mixed_base64_alphabet_leads_to_panic() {
         Decoder::Base64.decode::<6>(b"Pj4-Pz8/");
+    }
+
+    // Samples taken from https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki.
+    #[test]
+    fn bech32_encoding() {
+        const BECH32_ENCODING: Encoding = Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
+        const BECH32: Decoder = Decoder::Custom(BECH32_ENCODING);
+
+        const SAMPLES: &[(&[u8], &[u8])] = &[
+            (
+                &BECH32.decode::<20>(b"w508d6qejxtdg4y5r3zarvary0c5xw7k"),
+                &Decoder::Hex.decode::<20>(b"751e76e8199196d454941c45d1b3a323f1433bd6"),
+            ),
+            (
+                &BECH32.decode::<32>(b"rp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q"),
+                &Decoder::Hex.decode::<32>(
+                    b"1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262",
+                ),
+            ),
+        ];
+        for &(actual, expected) in SAMPLES {
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn binary_encoding() {
+        const BIN: Decoder = Decoder::Custom(Encoding::new("01"));
+        assert_eq!(BIN.decode::<1>(b"01101110"), [0b_0110_1110]);
+        assert_eq!(
+            SkipWhitespace(BIN).decode::<2>(b"0110 1110 1010 0010"),
+            [0b_0110_1110, 0b_1010_0010]
+        );
+    }
+
+    #[test]
+    fn octal_encoding() {
+        const BASE8: Decoder = Decoder::Custom(Encoding::new("01234567"));
+        assert_eq!(BASE8.decode::<1>(b"766"), [0o_76 * 4 + 3]);
+        assert_eq!(BASE8.decode::<3>(b"35145661"), [116, 203, 177]);
     }
 }
