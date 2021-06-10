@@ -116,6 +116,7 @@ jobs:
           args: --lib --target thumbv7m-none-eabi -Z avoid-dev-deps
 
   document:
+    if: github.event_name == 'push'
     needs:
       - build
       - build-msrv
@@ -145,7 +146,6 @@ jobs:
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@releases/v3
-        if: github.event_name == 'push'
         with:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           BRANCH: gh-pages
