@@ -4,11 +4,12 @@
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue)](https://github.com/slowli/const-decoder#license)
 ![rust 1.51.0+ required](https://img.shields.io/badge/rust-1.51.0+-blue.svg?label=Required%20Rust)
 
-**Documentation:**
+**Documentation:** [![Docs.rs](https://docs.rs/const-decoder/badge.svg)](https://docs.rs/const-decoder/)
 [![crate docs (master)](https://img.shields.io/badge/master-yellow.svg?label=docs)](https://slowli.github.io/const-decoder/const_decoder/)
 
 Constant functions for converting hex- and base64-encoded strings into bytes in Rust.
-Works on stable Rust and in no-std environments.
+Works on stable Rust and in no-std environments. Base-(2,4,8,16,32,64) encodings with
+custom alphabets are supported as well.
 
 ## Usage
 
