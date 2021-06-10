@@ -14,6 +14,11 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 - Rename `SkipWhitespace::parse()` and `Pem::parse()` methods to `decode()`
   for uniformity with `Decoder::decode`.
 
+### Fixed
+
+- Check final decoder state, preventing error such as an odd number of hex digits
+  or invalid terminal base64 char.
+
 ## 0.1.0 - 2021-04-16
 
 The initial release of `const-decoder`.

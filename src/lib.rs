@@ -1,5 +1,6 @@
 //! Constant functions for converting hex- and base64-encoded strings into bytes.
-//! Works on stable Rust and in no-std environments.
+//! Works on stable Rust and in no-std environments. Base-(2,4,8,16,32,64) encodings with
+//! custom alphabets are supported as well via [`Encoding`].
 //!
 //! [`Decoder`] is the base type encapsulating decoding logic, with [`SkipWhitespace`]
 //! and [`Pem`] types providing its variations with slightly different properties.
@@ -140,6 +141,10 @@ impl HexDecoderState {
         };
         (self, output)
     }
+
+    const fn is_final(self) -> bool {
+        self.0.is_none()
+    }
 }
 
 /// Internal state of a Base64 decoder.
@@ -181,6 +186,11 @@ impl CustomDecoderState {
         };
         (self, output)
     }
+
+    const fn is_final(&self) -> bool {
+        // We don't check `self.filled_bits` because padding may be implicit
+        self.partial_byte == 0
+    }
 }
 
 /// State of a decoder.
@@ -210,6 +220,13 @@ impl DecoderState {
                 let (updated_state, output) = state.update(byte);
                 (Self::Custom(updated_state), output)
             }
+        }
+    }
+
+    const fn is_final(&self) -> bool {
+        match self {
+            Self::Hex(state) => state.is_final(),
+            Self::Base64(state) | Self::Custom(state) => state.is_final(),
         }
     }
 }
@@ -286,6 +303,7 @@ impl Decoder {
             in_index += 1;
         }
         const_assert!(out_index == N, "Not all bytes of output were written");
+        const_assert!(state.is_final(), "Left-overs after processing input");
         bytes
     }
 }
@@ -485,6 +503,12 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn hex_encoding_with_odd_number_of_digits() {
+        let _: [u8; 1] = Decoder::Hex.decode(b"012");
+    }
+
+    #[test]
     fn hex_codec_with_whitespace() {
         const KEY: [u8; 4] = Decoder::Hex.skip_whitespace().decode(b"12\n34  56\t7f");
         assert_eq!(KEY, [0x12, 0x34, 0x56, 0x7f]);
@@ -548,12 +572,12 @@ mod tests {
         Decoder::Base64.decode::<6>(b"Pj4-Pz8/");
     }
 
+    const BECH32_ENCODING: Encoding = Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
+    const BECH32: Decoder = Decoder::Custom(BECH32_ENCODING);
+
     // Samples taken from https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki.
     #[test]
     fn bech32_encoding() {
-        const BECH32_ENCODING: Encoding = Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
-        const BECH32: Decoder = Decoder::Custom(BECH32_ENCODING);
-
         const SAMPLES: &[(&[u8], &[u8])] = &[
             (
                 &BECH32.decode::<20>(b"w508d6qejxtdg4y5r3zarvary0c5xw7k"),
@@ -569,6 +593,14 @@ mod tests {
         for &(actual, expected) in SAMPLES {
             assert_eq!(actual, expected);
         }
+    }
+
+    #[test]
+    #[should_panic]
+    fn bech32_encoding_with_invalid_padding() {
+        // The last char `l = 31` is too large.
+        let _: [u8; 32] =
+            BECH32.decode::<32>(b"rp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3l");
     }
 
     #[test]
