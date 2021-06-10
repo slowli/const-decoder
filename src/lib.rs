@@ -145,6 +145,7 @@ impl HexDecoderState {
 /// Internal state of a Base64 decoder.
 #[derive(Debug, Clone, Copy)]
 struct Base64DecoderState {
+    url_safe: bool,
     partial_byte: u8,
     filled_bits: u8,
 }
@@ -152,13 +153,15 @@ struct Base64DecoderState {
 impl Base64DecoderState {
     #[allow(unconditional_panic)]
     // ^-- Required since ordinary `panic`s are not yet stable in const context
-    const fn byte_value(val: u8) -> u8 {
+    const fn byte_value(url_safe: bool, val: u8) -> u8 {
         match val {
             b'A'..=b'Z' => val - b'A',
             b'a'..=b'z' => val - b'a' + 26,
             b'0'..=b'9' => val - b'0' + 52,
-            b'+' => 62,
-            b'/' => 63,
+            b'+' if !url_safe => 62,
+            b'-' if url_safe => 62,
+            b'/' if !url_safe => 63,
+            b'_' if url_safe => 63,
             _ => {
                 const_assert!(false, "Invalid character in input; expected a Base64 digit");
                 0 // unreachable
@@ -166,8 +169,9 @@ impl Base64DecoderState {
         }
     }
 
-    const fn new() -> Self {
+    const fn new(url_safe: bool) -> Self {
         Self {
+            url_safe,
             partial_byte: 0,
             filled_bits: 0,
         }
@@ -178,7 +182,7 @@ impl Base64DecoderState {
             return (self, None);
         }
 
-        let byte = Self::byte_value(byte);
+        let byte = Self::byte_value(self.url_safe, byte);
         let output = match self.filled_bits {
             0 | 1 => {
                 self.partial_byte = (self.partial_byte << 6) + byte;
@@ -239,12 +243,20 @@ impl DecoderState {
 pub enum Decoder {
     /// Hexadecimal decoder. Supports uppercase and lowercase digits.
     Hex,
-    /// Base64 decoder. Does not require padding, but works fine with it.
+    /// Base64 decoder accepting standard encoding as per [RFC 3548].
+    /// Does not require padding, but works fine with it.
+    ///
+    /// [RFC 3548]: https://datatracker.ietf.org/doc/html/rfc3548.html
     Base64,
+    /// Base64 decoder accepting URL / filesystem-safe encoding as per [RFC 3548].
+    /// Does not require padding, but works fine with it.
+    ///
+    /// [RFC 3548]: https://datatracker.ietf.org/doc/html/rfc3548.html
+    Base64Url,
 }
 
 impl Decoder {
-    /// Marks that this coder should skip whitespace chars rather than panic on them.
+    /// Makes this decoder skip whitespace chars rather than panicking on encountering them.
     pub const fn skip_whitespace(self) -> SkipWhitespace {
         SkipWhitespace(self)
     }
@@ -252,7 +264,8 @@ impl Decoder {
     const fn new_state(self) -> DecoderState {
         match self {
             Self::Hex => DecoderState::Hex(HexDecoderState::new()),
-            Self::Base64 => DecoderState::Base64(Base64DecoderState::new()),
+            Self::Base64 => DecoderState::Base64(Base64DecoderState::new(false)),
+            Self::Base64Url => DecoderState::Base64(Base64DecoderState::new(true)),
         }
     }
 
@@ -428,6 +441,21 @@ mod tests {
     }
 
     #[test]
+    fn base64url_codec_in_compile_time() {
+        const SAMPLES: &[(&[u8], &[u8])] = &[
+            (&Decoder::Base64Url.decode::<6>(b"Pj4-Pz8_"), b">>>???"),
+            (&Decoder::Base64Url.decode::<6>(b"PHRlc3Q-"), b"<test>"),
+            (
+                &Decoder::Base64Url.decode::<10>(b"SGVsbG8_IEhpIQ=="),
+                b"Hello? Hi!",
+            ),
+        ];
+        for &(actual, expected) in SAMPLES {
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
     fn base64_with_small_bytes() {
         assert_eq!(Decoder::Base64.decode::<3>(b"MIID"), [48, 130, 3]);
     }
@@ -444,5 +472,11 @@ mod tests {
         assert_eq!(s, *b"Test string");
         let s: [u8; 18] = Decoder::Base64.decode(b"TG9uZ2VyIHRlc3Qgc3RyaW5n");
         assert_eq!(s, *b"Longer test string");
+    }
+
+    #[test]
+    #[should_panic]
+    fn mixed_base64_alphabet_leads_to_panic() {
+        Decoder::Base64.decode::<6>(b"Pj4-Pz8/");
     }
 }
