@@ -233,7 +233,7 @@ pub enum Decoder {
     ///
     /// [RFC 3548]: https://datatracker.ietf.org/doc/html/rfc3548.html
     Base64Url,
-    /// Decoder based on a custom encoding.
+    /// Decoder based on a custom [`Encoding`].
     Custom(Encoding),
 }
 
@@ -386,10 +386,24 @@ impl Pem {
     }
 }
 
-#[cfg(doctest)]
-doc_comment::doctest!("../README.md");
-
-/// FIXME
+/// Custom encoding scheme based on a certain alphabet (mapping between a subset of ASCII chars
+/// and digits in `0..P`, where `P` is a power of 2).
+///
+/// # Examples
+///
+/// ```
+/// # use const_decoder::{Decoder, Encoding};
+/// // Decoder for Bech32 encoding as specified in
+/// // https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki.
+/// const BECH32: Decoder = Decoder::Custom(
+///     Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l"),
+/// );
+///
+/// // Sample address from the Bech32 spec excluding the `tb1q` prefix
+/// // and the checksum suffix.
+/// const SAMPLE_ADDR: [u8; 32] =
+///     BECH32.decode(b"rp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q");
+/// ```
 #[derive(Debug, Clone, Copy)]
 pub struct Encoding {
     table: [u8; 128],
@@ -404,7 +418,13 @@ impl Encoding {
     const BASE64_URL: Self =
         Self::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_");
 
-    /// FIXME
+    /// Creates an encoding based on the provided `alphabet`: a sequence of ASCII chars
+    /// that correspond to digits 0, 1, 2, etc.
+    ///
+    /// # Panics
+    ///
+    /// - `alphabet` must consist of distinct ASCII chars.
+    /// - `alphabet` length must be a power of 2 (i.e., 2, 4, 8, 16, 32 or 64).
     #[allow(unconditional_panic, clippy::cast_possible_truncation)]
     pub const fn new(alphabet: &str) -> Self {
         let bits_per_char = match alphabet.len() {
@@ -450,6 +470,9 @@ impl Encoding {
         mapping
     }
 }
+
+#[cfg(doctest)]
+doc_comment::doctest!("../README.md");
 
 #[cfg(test)]
 mod tests {
