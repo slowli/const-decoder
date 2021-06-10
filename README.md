@@ -8,7 +8,8 @@
 [![crate docs (master)](https://img.shields.io/badge/master-yellow.svg?label=docs)](https://slowli.github.io/const-decoder/const_decoder/)
 
 Constant functions for converting hex- and base64-encoded strings into bytes in Rust.
-Works on stable Rust and in no-std environments.
+Works on stable Rust and in no-std environments. Base-(2,4,8,16,32,64) encodings with
+custom alphabets are supported as well.
 
 ## Usage
 
