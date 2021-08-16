@@ -12,11 +12,19 @@
 //!
 //! - Compile-time assertions rely on a hack since [const panics] are not stable yet
 //!   as of Rust 1.51. This produces *sort of* reasonable error messages in compile time,
-//!   but in runtime the error messages could be better.
+//!   but in runtime the error messages could be better. This can be avoided
+//!   with [the `nightly` crate feature](#nightly), but it only works with nightly toolchains.
 //! - Length of the output byte array needs to be specified, either in its type, or using
 //!   turbofish syntax (see the examples below). This could be a positive in some cases;
 //!   e.g., keys in cryptography frequently have an expected length, and specifying it can prevent
 //!   key mix-up.
+//!
+//! # Crate features
+//!
+//! ## `nightly`
+//!
+//! Enables unstable Rust features to produce clearer panic messages. Requires a nightly Rust
+//! toolchain.
 //!
 //! # Alternatives
 //!
@@ -92,6 +100,7 @@
 //! ```
 
 #![no_std]
+#![cfg_attr(feature = "nightly", feature(const_panic))]
 // Documentation settings.
 #![doc(html_root_url = "https://docs.rs/const-decoder/0.1.0")]
 // Linter settings.
@@ -100,6 +109,9 @@
 #![allow(clippy::must_use_candidate, clippy::shadow_unrelated)]
 
 // TODO: replace with `assert` once https://github.com/rust-lang/rust/issues/51999 is stabilized.
+#[cfg(feature = "nightly")]
+use core::assert as const_assert;
+#[cfg(not(feature = "nightly"))]
 macro_rules! const_assert {
     ($condition:expr, $msg:tt) => {
         [$msg][!($condition) as usize];
@@ -297,13 +309,26 @@ impl Decoder {
             let update = state.update(input[in_index]);
             state = update.0;
             if let Some(byte) = update.1 {
+                const_assert!(
+                    out_index < N,
+                    "Output overflow: the input decodes to more bytes than specified \
+                     as the output length"
+                );
                 bytes[out_index] = byte;
                 out_index += 1;
             }
             in_index += 1;
         }
-        const_assert!(out_index == N, "Not all bytes of output were written");
-        const_assert!(state.is_final(), "Left-overs after processing input");
+        const_assert!(
+            out_index == N,
+            "Output underflow: the input was decoded into less bytes than specified \
+             as the output length"
+        );
+        const_assert!(
+            state.is_final(),
+            "Left-over state after processing input. This usually means that the input \
+             is incorrect (e.g., an odd number of hex digits)."
+        );
         bytes
     }
 }
