@@ -17,7 +17,7 @@ Add this to your `Crate.toml`:
 
 ```toml
 [dependencies]
-const-decoder = "0.1.0"
+const-decoder = "0.2.0"
 ```
 
 Example of usage:
