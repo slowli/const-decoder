@@ -4,7 +4,7 @@
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue)](https://github.com/slowli/const-decoder#license)
 ![rust 1.51.0+ required](https://img.shields.io/badge/rust-1.51.0+-blue.svg?label=Required%20Rust)
 
-**Documentation:** [![Docs.rs](https://docs.rs/const-decoder/badge.svg)](https://docs.rs/const-decoder/)
+**Documentation:** [![Docs.rs](https://img.shields.io/docsrs/const-decoder)](https://docs.rs/const-decoder/)
 [![crate docs (master)](https://img.shields.io/badge/master-yellow.svg?label=docs)](https://slowli.github.io/const-decoder/const_decoder/)
 
 Constant functions for converting hex- and base64-encoded strings into bytes in Rust.
@@ -17,7 +17,7 @@ Add this to your `Crate.toml`:
 
 ```toml
 [dependencies]
-const-decoder = "0.1.0"
+const-decoder = "0.2.0"
 ```
 
 Example of usage:
@@ -29,6 +29,19 @@ const SECRET_KEY: [u8; 64] = Decoder::Hex.decode(
     b"9e55d1e1aa1f455b8baad9fdf975503655f8b359d542fa7e4ce84106d625b352\
       06fac1f22240cffd637ead6647188429fafda9c9cb7eae43386ac17f61115075",
 );
+```
+
+[Bech32] encoding:
+
+```rust
+use const_decoder::{Decoder, Encoding};
+const BECH32: Decoder = Decoder::Custom(
+    Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l"),
+);
+// Sample address from the Bech32 spec excluding the `tb1q` prefix
+// and the checksum suffix.
+const SAMPLE_ADDR: [u8; 32] =
+    BECH32.decode(b"rp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q");
 ```
 
 See more examples in the crate docs.
@@ -48,5 +61,6 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in `const-decoder` by you, as defined in the Apache-2.0 license,
 shall be dual licensed as above, without any additional terms or conditions.
 
+[Bech32]: https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
 [`binary_macros`]: https://crates.io/crates/binary_macros
 [`hex-literal`]: https://crates.io/crates/hex_literal
