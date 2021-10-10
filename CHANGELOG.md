@@ -9,6 +9,8 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 - Support URL-safe variant of base64 encoding.
 - Support base-(2,4,8,16,32,64) encodings with custom alphabets.
+- Add `nightly` feature (requires a nightly Rust toolchain) for improved panic 
+  messages.
 
 ### Changed
 
