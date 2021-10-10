@@ -16,6 +16,7 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 - Rename `SkipWhitespace::parse()` and `Pem::parse()` methods to `decode()`
   for uniformity with `Decoder::decode`.
+- Mark `Decoder` enum as non-exhaustive.
 
 ### Fixed
 

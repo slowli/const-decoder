@@ -249,6 +249,7 @@ impl DecoderState {
 ///
 /// See the [crate docs](index.html) for examples of usage.
 #[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
 pub enum Decoder {
     /// Hexadecimal decoder. Supports uppercase and lowercase digits.
     Hex,
@@ -466,8 +467,8 @@ impl Encoding {
     ///
     /// # Panics
     ///
-    /// - `alphabet` must consist of distinct ASCII chars.
-    /// - `alphabet` length must be a power of 2 (i.e., 2, 4, 8, 16, 32 or 64).
+    /// - Panics if `alphabet` does not consist of distinct ASCII chars.
+    /// - Panics if `alphabet` length is not a power of 2 (i.e., 2, 4, 8, 16, 32 or 64).
     #[allow(unconditional_panic, clippy::cast_possible_truncation)]
     pub const fn new(alphabet: &str) -> Self {
         let bits_per_char = match alphabet.len() {
