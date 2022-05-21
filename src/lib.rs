@@ -10,21 +10,10 @@
 //!
 //! # Limitations
 //!
-//! - Compile-time assertions rely on a hack since [const panics] are not stable yet
-//!   as of Rust 1.51. This produces *sort of* reasonable error messages in compile time,
-//!   but in runtime the error messages could be better. This can be avoided
-//!   with [the `nightly` crate feature](#nightly), but it only works with nightly toolchains.
 //! - Length of the output byte array needs to be specified, either in its type, or using
 //!   turbofish syntax (see the examples below). This could be a positive in some cases;
 //!   e.g., keys in cryptography frequently have an expected length, and specifying it can prevent
 //!   key mix-up.
-//!
-//! # Crate features
-//!
-//! ## `nightly`
-//!
-//! Enables unstable Rust features to produce clearer panic messages. Requires a nightly Rust
-//! toolchain.
 //!
 //! # Alternatives
 //!
@@ -100,23 +89,12 @@
 //! ```
 
 #![no_std]
-#![cfg_attr(feature = "nightly", feature(const_panic))]
 // Documentation settings.
 #![doc(html_root_url = "https://docs.rs/const-decoder/0.2.0")]
 // Linter settings.
 #![warn(missing_debug_implementations, missing_docs, bare_trait_objects)]
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::must_use_candidate, clippy::shadow_unrelated)]
-
-// TODO: replace with `assert` once https://github.com/rust-lang/rust/issues/51999 is stabilized.
-#[cfg(feature = "nightly")]
-use core::assert as const_assert;
-#[cfg(not(feature = "nightly"))]
-macro_rules! const_assert {
-    ($condition:expr, $msg:tt) => {
-        [$msg][!($condition) as usize];
-    };
-}
 
 /// Internal state of the hexadecimal decoder.
 #[derive(Debug, Clone, Copy)]
@@ -130,10 +108,7 @@ impl HexDecoderState {
             b'0'..=b'9' => val - b'0',
             b'A'..=b'F' => val - b'A' + 10,
             b'a'..=b'f' => val - b'a' + 10,
-            _ => {
-                const_assert!(false, "Invalid character in input; expected a hex digit");
-                0
-            }
+            _ => panic!("Invalid character in input; expected a hex digit"),
         }
     }
 
@@ -310,7 +285,7 @@ impl Decoder {
             let update = state.update(input[in_index]);
             state = update.0;
             if let Some(byte) = update.1 {
-                const_assert!(
+                assert!(
                     out_index < N,
                     "Output overflow: the input decodes to more bytes than specified \
                      as the output length"
@@ -320,12 +295,12 @@ impl Decoder {
             }
             in_index += 1;
         }
-        const_assert!(
+        assert!(
             out_index == N,
             "Output underflow: the input was decoded into less bytes than specified \
              as the output length"
         );
-        const_assert!(
+        assert!(
             state.is_final(),
             "Left-over state after processing input. This usually means that the input \
              is incorrect (e.g., an odd number of hex digits)."
@@ -478,10 +453,7 @@ impl Encoding {
             16 => 4,
             32 => 5,
             64 => 6,
-            _ => {
-                const_assert!(false, "Invalid alphabet length; must be a power of 2");
-                0 // unreachable
-            }
+            _ => panic!("Invalid alphabet length; must be a power of 2"),
         };
 
         let mut table = [Self::NO_MAPPING; 128];
@@ -489,9 +461,9 @@ impl Encoding {
         let mut index = 0;
         while index < alphabet_bytes.len() {
             let byte = alphabet_bytes[index];
-            const_assert!(byte < 0x80, "Non-ASCII alphabet character");
+            assert!(byte < 0x80, "Non-ASCII alphabet character");
             let byte_idx = byte as usize;
-            const_assert!(
+            assert!(
                 table[byte_idx] == Self::NO_MAPPING,
                 "Character is mentioned several times"
             );
@@ -507,7 +479,7 @@ impl Encoding {
 
     const fn lookup(&self, ascii_char: u8) -> u8 {
         let mapping = self.table[ascii_char as usize];
-        const_assert!(
+        assert!(
             mapping != Self::NO_MAPPING,
             "Char is not present in the alphabet"
         );
