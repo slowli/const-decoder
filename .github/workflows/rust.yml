@@ -8,9 +8,9 @@ on:
 
 env:
   # Minimum supported Rust version.
-  msrv: 1.51.0
+  msrv: 1.57.0
   # Nightly Rust necessary for the no-std job.
-  nightly: nightly-2021-04-15
+  nightly: nightly-2022-05-21
 
 jobs:
   build-msrv:
@@ -45,14 +45,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        include:
-          - rust: stable
-            features: ""
-          - rust: nightly-2021-04-15
-            features: "nightly"
-
     steps:
       - uses: actions/checkout@v2
 
@@ -60,38 +52,37 @@ jobs:
         uses: actions/cache@v1
         with:
           path: target
-          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-build-target
+          key: ${{ runner.os }}-cargo-stable-build-target
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: stable
           override: true
           components: rustfmt, clippy
 
       - name: Format
         uses: actions-rs/cargo@v1
-        if: matrix.rust == 'stable'
         with:
           command: fmt
           args: --all -- --check
       - name: Clippy
         uses: actions-rs/clippy-check@v1
         with:
-          name: "Clippy (features: ${{ matrix.features }})"
+          name: "Clippy"
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all --features=${{ matrix.features }} --all-targets -- -D warnings
+          args: --all --all-targets -- -D warnings
 
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --features=${{ matrix.features }} --all-targets
+          args: --all --all-targets
       - name: Run doc tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --features=${{ matrix.features }} --doc
+          args: --all --doc
 
   # Checks that the crate actually builds without `std`. To do this,
   # we take a target (`thumbv7m-none-eabi`) that does not have `std` support.
