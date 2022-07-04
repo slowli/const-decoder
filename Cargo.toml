@@ -2,7 +2,8 @@
 name = "const-decoder"
 version = "0.2.0"
 authors = ["Alex Ostrovski <ostrovski.alex@gmail.com>"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.57"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 keywords = ["base64", "hex", "decoding", "constant-evaluation"]
