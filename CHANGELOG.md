@@ -7,7 +7,7 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
-- Bump MSRV to 1.57 and remove the `nightly` feature as obsolete.
+- Bump MSRV to 1.57, switch to 2021 edition and remove the `nightly` feature as obsolete.
 
 ## 0.2.0 - 2021-10-10
 
