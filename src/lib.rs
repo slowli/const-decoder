@@ -53,8 +53,7 @@
 //! const CERT: &[u8] = &Pem::decode::<888>(include_bytes!("certificate.crt"));
 //! ```
 //!
-//! Naturally, all code works in the runtime context as well, although panic messages
-//! may be not quite comprehensible.
+//! Naturally, all code works in the runtime context as well.
 //!
 //! ```
 //! # use const_decoder::Decoder;
@@ -101,8 +100,6 @@
 struct HexDecoderState(Option<u8>);
 
 impl HexDecoderState {
-    #[allow(unconditional_panic)]
-    // ^-- Required since ordinary `panic`s are not yet stable in const context
     const fn byte_value(val: u8) -> u8 {
         match val {
             b'0'..=b'9' => val - b'0',
@@ -443,8 +440,8 @@ impl Encoding {
     /// # Panics
     ///
     /// - Panics if `alphabet` does not consist of distinct ASCII chars.
-    /// - Panics if `alphabet` length is not a power of 2 (i.e., 2, 4, 8, 16, 32 or 64).
-    #[allow(unconditional_panic, clippy::cast_possible_truncation)]
+    /// - Panics if `alphabet` length is not 2, 4, 8, 16, 32 or 64.
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn new(alphabet: &str) -> Self {
         let bits_per_char = match alphabet.len() {
             2 => 1,
@@ -453,7 +450,7 @@ impl Encoding {
             16 => 4,
             32 => 5,
             64 => 6,
-            _ => panic!("Invalid alphabet length; must be a power of 2"),
+            _ => panic!("Invalid alphabet length; must be one of 2, 4, 8, 16, 32, or 64"),
         };
 
         let mut table = [Self::NO_MAPPING; 128];
@@ -465,7 +462,7 @@ impl Encoding {
             let byte_idx = byte as usize;
             assert!(
                 table[byte_idx] == Self::NO_MAPPING,
-                "Character is mentioned several times"
+                "Alphabet character is mentioned several times"
             );
             table[byte_idx] = index as u8;
             index += 1;
@@ -481,7 +478,7 @@ impl Encoding {
         let mapping = self.table[ascii_char as usize];
         assert!(
             mapping != Self::NO_MAPPING,
-            "Char is not present in the alphabet"
+            "Character is not present in the alphabet"
         );
         mapping
     }
