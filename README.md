@@ -1,6 +1,6 @@
 # Constant Functions for Hex / Base64 Decoding
 
-[![Build Status](https://github.com/slowli/const-decoder/workflows/Rust/badge.svg?branch=master)](https://github.com/slowli/const-decoder/actions)
+[![Build Status](https://github.com/slowli/const-decoder/workflows/CI/badge.svg?branch=master)](https://github.com/slowli/const-decoder/actions)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue)](https://github.com/slowli/const-decoder#license)
 ![rust 1.57+ required](https://img.shields.io/badge/rust-1.57+-blue.svg?label=Required%20Rust)
 
