@@ -35,9 +35,7 @@ const SECRET_KEY: [u8; 64] = Decoder::Hex.decode(
 
 ```rust
 use const_decoder::{Decoder, Encoding};
-const BECH32: Decoder = Decoder::Custom(
-    Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l"),
-);
+const BECH32: Decoder = Decoder::custom("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
 // Sample address from the Bech32 spec excluding the `tb1q` prefix
 // and the checksum suffix.
 const SAMPLE_ADDR: [u8; 32] =
