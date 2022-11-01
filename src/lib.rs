@@ -11,7 +11,7 @@
 //! # Limitations
 //!
 //! - Length of the output byte array needs to be specified, either in its type, or using
-//!   turbofish syntax (see the examples below). This could be a positive in some cases;
+//!   turbofish syntax (see the examples below). This could be seen as a positive in some cases;
 //!   e.g., keys in cryptography frequently have an expected length, and specifying it can prevent
 //!   key mix-up.
 //!
@@ -21,12 +21,10 @@
 //! as procedural macros. Because of this, macros cannot be used in no-std environments,
 //! while this approach can.
 //!
-//! In the longer-term (after stabilizing [const panics], [const mutable refs], etc.)
+//! In the longer-term (after stabilizing [const mutable refs], etc.)
 //! it should become possible to use "ordinary" encoding crates, such as [`hex`].
 //!
-//! [const panics]: https://github.com/rust-lang/rust/issues/51999
 //! [const mutable refs]: https://github.com/rust-lang/rust/issues/57349
-//! [type params for const fns]: https://github.com/rust-lang/rfcs/pull/2632
 //! [`binary_macros`]: https://crates.io/crates/binary_macros
 //! [`hex-literal`]: https://crates.io/crates/hex_literal
 //! [`hex`]: https://crates.io/crates/hex
@@ -89,7 +87,7 @@
 
 #![no_std]
 // Documentation settings.
-#![doc(html_root_url = "https://docs.rs/const-decoder/0.2.0")]
+#![doc(html_root_url = "https://docs.rs/const-decoder/0.3.0")]
 // Linter settings.
 #![warn(missing_debug_implementations, missing_docs, bare_trait_objects)]
 #![warn(clippy::all, clippy::pedantic)]

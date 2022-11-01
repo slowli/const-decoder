@@ -8,12 +8,10 @@ use crate::wrappers::{SkipWhitespace, Skipper};
 /// # Examples
 ///
 /// ```
-/// # use const_decoder::{Decoder, Encoding};
+/// # use const_decoder::Decoder;
 /// // Decoder for Bech32 encoding as specified in
 /// // https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki.
-/// const BECH32: Decoder = Decoder::Custom(
-///     Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l"),
-/// );
+/// const BECH32: Decoder = Decoder::custom("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
 ///
 /// // Sample address from the Bech32 spec excluding the `tb1q` prefix
 /// // and the checksum suffix.
@@ -229,6 +227,15 @@ pub enum Decoder {
 }
 
 impl Decoder {
+    /// Creates a new decoder with a custom alphabet.
+    ///
+    /// # Panics
+    ///
+    /// Panics in the same situations as [`Encoding::new()`].
+    pub const fn custom(alphabet: &str) -> Self {
+        Self::Custom(Encoding::new(alphabet))
+    }
+
     /// Makes this decoder skip whitespace chars rather than panicking on encountering them.
     pub const fn skip_whitespace(self) -> SkipWhitespace {
         SkipWhitespace(self)

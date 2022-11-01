@@ -5,6 +5,12 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## 0.3.0 - 2022-11-01
+
+### Added
+
+- Add [`Decoder::custom()`] as a shortcut for `Decoder::Custom(Encoding::new(alphabet))`.
+
 ### Changed
 
 - Bump MSRV to 1.57, switch to 2021 edition and remove the `nightly` feature as obsolete.

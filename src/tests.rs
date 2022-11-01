@@ -78,8 +78,7 @@ fn mixed_base64_alphabet_leads_to_panic() {
     Decoder::Base64.decode::<6>(b"Pj4-Pz8/");
 }
 
-const BECH32_ENCODING: Encoding = Encoding::new("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
-const BECH32: Decoder = Decoder::Custom(BECH32_ENCODING);
+const BECH32: Decoder = Decoder::custom("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
 
 // Samples taken from https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki.
 #[test]
@@ -109,7 +108,7 @@ fn bech32_encoding_with_invalid_padding() {
 
 #[test]
 fn binary_encoding() {
-    const BIN: Decoder = Decoder::Custom(Encoding::new("01"));
+    const BIN: Decoder = Decoder::custom("01");
     assert_eq!(BIN.decode::<1>(b"01101110"), [0b_0110_1110]);
     assert_eq!(
         SkipWhitespace(BIN).decode::<2>(b"0110 1110 1010 0010"),
@@ -119,7 +118,7 @@ fn binary_encoding() {
 
 #[test]
 fn octal_encoding() {
-    const BASE8: Decoder = Decoder::Custom(Encoding::new("01234567"));
+    const BASE8: Decoder = Decoder::custom("01234567");
     assert_eq!(BASE8.decode::<1>(b"766"), [0o_76 * 4 + 3]);
     assert_eq!(BASE8.decode::<3>(b"35145661"), [116, 203, 177]);
 }
