@@ -10,7 +10,7 @@ env:
   # Minimum supported Rust version.
   msrv: 1.57.0
   # Nightly Rust necessary for the no-std job.
-  nightly: nightly-2022-05-21
+  nightly: nightly-2022-11-24
 
 jobs:
   build-msrv:
@@ -144,9 +144,8 @@ jobs:
           cargo rustdoc -p const-decoder -- --cfg docsrs
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@releases/v3
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: target/doc
-          SINGLE_COMMIT: true
+          branch: gh-pages
+          folder: target/doc
+          single-commit: true

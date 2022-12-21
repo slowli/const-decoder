@@ -1,3 +1,7 @@
+use base64::{
+    alphabet,
+    engine::fast_portable::{FastPortable, NO_PAD, PAD},
+};
 use bech32::{ToBase32, Variant};
 use rand::{thread_rng, RngCore};
 
@@ -20,14 +24,14 @@ fn fuzz_hex_decoder<const N: usize>(samples: usize) {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
 
-        let encoded = hex::encode(&bytes);
+        let encoded = hex::encode(bytes);
         let decoded = Decoder::Hex.decode::<N>(encoded.as_bytes());
         assert_eq!(decoded, bytes);
 
         let decoded_custom = CUSTOM_HEX.decode::<N>(encoded.as_bytes());
         assert_eq!(decoded_custom, bytes);
 
-        let encoded_upper_case = hex::encode_upper(&bytes);
+        let encoded_upper_case = hex::encode_upper(bytes);
         let decoded_upper_case = Decoder::Hex.decode::<N>(encoded_upper_case.as_bytes());
         assert_eq!(decoded_upper_case, bytes);
     }
@@ -43,16 +47,18 @@ fn hex_decoder_mini_fuzz() {
 }
 
 fn fuzz_base64_decoder<const N: usize>(samples: usize) {
+    const STANDARD_NO_PAD: FastPortable = FastPortable::from(&alphabet::STANDARD, NO_PAD);
+
     let mut rng = thread_rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
 
-        let encoded = base64::encode(&bytes);
+        let encoded = base64::encode(bytes);
         let decoded = Decoder::Base64.decode::<N>(encoded.as_bytes());
         assert_eq!(decoded, bytes);
 
-        let encoded_no_pad = base64::encode_config(&bytes, base64::STANDARD_NO_PAD);
+        let encoded_no_pad = base64::encode_engine(bytes, &STANDARD_NO_PAD);
         let decoded_no_pad = Decoder::Base64.decode::<N>(encoded_no_pad.as_bytes());
         assert_eq!(decoded_no_pad, bytes);
     }
@@ -69,16 +75,19 @@ fn base64_decoder_mini_fuzz() {
 }
 
 fn fuzz_base64url_decoder<const N: usize>(samples: usize) {
+    const URL_SAFE: FastPortable = FastPortable::from(&alphabet::URL_SAFE, PAD);
+    const URL_SAFE_NO_PAD: FastPortable = FastPortable::from(&alphabet::URL_SAFE, NO_PAD);
+
     let mut rng = thread_rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
 
-        let encoded = base64::encode_config(&bytes, base64::URL_SAFE);
+        let encoded = base64::encode_engine(bytes, &URL_SAFE);
         let decoded = Decoder::Base64Url.decode::<N>(encoded.as_bytes());
         assert_eq!(decoded, bytes);
 
-        let encoded_no_pad = base64::encode_config(&bytes, base64::URL_SAFE_NO_PAD);
+        let encoded_no_pad = base64::encode_engine(bytes, &URL_SAFE_NO_PAD);
         let decoded_no_pad = Decoder::Base64Url.decode::<N>(encoded_no_pad.as_bytes());
         assert_eq!(decoded_no_pad, bytes);
     }
