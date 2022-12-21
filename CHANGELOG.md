@@ -9,7 +9,7 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- Add [`Decoder::custom()`] as a shortcut for `Decoder::Custom(Encoding::new(alphabet))`.
+- Add `Decoder::custom()` as a shortcut for `Decoder::Custom(Encoding::new(alphabet))`.
 
 ### Changed
 
