@@ -12,7 +12,7 @@ description = "Constant functions for converting hex- and base64-encoded strings
 repository = "https://github.com/slowli/const-decoder"
 
 [dev-dependencies]
-base64 = "0.20.0"
+base64 = "0.21.0"
 bech32 = "0.9.0"
 doc-comment = "0.3.3"
 hex = "0.4.3"
