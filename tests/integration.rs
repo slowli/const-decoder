@@ -1,6 +1,6 @@
 use base64::{
-    alphabet,
-    engine::fast_portable::{FastPortable, NO_PAD, PAD},
+    engine::general_purpose::{STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD},
+    Engine as _,
 };
 use bech32::{ToBase32, Variant};
 use rand::{thread_rng, RngCore};
@@ -47,18 +47,16 @@ fn hex_decoder_mini_fuzz() {
 }
 
 fn fuzz_base64_decoder<const N: usize>(samples: usize) {
-    const STANDARD_NO_PAD: FastPortable = FastPortable::from(&alphabet::STANDARD, NO_PAD);
-
     let mut rng = thread_rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
 
-        let encoded = base64::encode(bytes);
+        let encoded = STANDARD.encode(bytes);
         let decoded = Decoder::Base64.decode::<N>(encoded.as_bytes());
         assert_eq!(decoded, bytes);
 
-        let encoded_no_pad = base64::encode_engine(bytes, &STANDARD_NO_PAD);
+        let encoded_no_pad = STANDARD_NO_PAD.encode(bytes);
         let decoded_no_pad = Decoder::Base64.decode::<N>(encoded_no_pad.as_bytes());
         assert_eq!(decoded_no_pad, bytes);
     }
@@ -75,19 +73,16 @@ fn base64_decoder_mini_fuzz() {
 }
 
 fn fuzz_base64url_decoder<const N: usize>(samples: usize) {
-    const URL_SAFE: FastPortable = FastPortable::from(&alphabet::URL_SAFE, PAD);
-    const URL_SAFE_NO_PAD: FastPortable = FastPortable::from(&alphabet::URL_SAFE, NO_PAD);
-
     let mut rng = thread_rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
 
-        let encoded = base64::encode_engine(bytes, &URL_SAFE);
+        let encoded = URL_SAFE.encode(bytes);
         let decoded = Decoder::Base64Url.decode::<N>(encoded.as_bytes());
         assert_eq!(decoded, bytes);
 
-        let encoded_no_pad = base64::encode_engine(bytes, &URL_SAFE_NO_PAD);
+        let encoded_no_pad = URL_SAFE_NO_PAD.encode(bytes);
         let decoded_no_pad = Decoder::Base64Url.decode::<N>(encoded_no_pad.as_bytes());
         assert_eq!(decoded_no_pad, bytes);
     }
