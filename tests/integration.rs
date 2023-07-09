@@ -12,8 +12,8 @@ fn reading_from_file_works() {
     const RAW_INPUT: &[u8] = include_bytes!("certificate.crt");
     const CERT: [u8; 888] = Pem::decode(RAW_INPUT);
 
-    let expected = pem::parse(RAW_INPUT).unwrap().contents;
-    assert_eq!(CERT, expected.as_slice());
+    let parsed = pem::parse(RAW_INPUT).unwrap();
+    assert_eq!(CERT, *parsed.contents());
 }
 
 fn fuzz_hex_decoder<const N: usize>(samples: usize) {

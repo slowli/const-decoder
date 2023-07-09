@@ -8,9 +8,9 @@ on:
 
 env:
   # Minimum supported Rust version.
-  msrv: 1.57.0
+  msrv: 1.60.0
   # Nightly Rust necessary for the no-std job.
-  nightly: nightly-2022-11-24
+  nightly: nightly-2023-04-29
 
 jobs:
   build-msrv:
