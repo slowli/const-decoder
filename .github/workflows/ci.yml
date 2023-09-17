@@ -10,7 +10,7 @@ env:
   # Minimum supported Rust version.
   msrv: 1.60.0
   # Nightly Rust necessary for the no-std job.
-  nightly: nightly-2023-04-29
+  nightly: nightly-2023-09-09
 
 jobs:
   build-msrv:
@@ -20,14 +20,9 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.msrv }}
-          override: true
-      - name: Generate lockfile
-        uses: actions-rs/cargo@v1
-        with:
-          command: generate-lockfile
 
       - name: Cache cargo build
         uses: actions/cache@v3
@@ -37,15 +32,9 @@ jobs:
           restore-keys: ${{ runner.os }}-msrv-cargo
 
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --all-targets
+        run: cargo test --workspace --all-targets
       - name: Run doc tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --doc
+        run: cargo test --workspace --doc
 
   build:
     runs-on: ubuntu-latest
@@ -54,15 +43,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          override: true
           components: rustfmt, clippy
-      - name: Generate lockfile
-        uses: actions-rs/cargo@v1
-        with:
-          command: generate-lockfile
 
       - name: Cache cargo build
         uses: actions/cache@v3
@@ -72,27 +56,14 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo
 
       - name: Format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
       - name: Clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          name: "Clippy"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --all-targets
+        run: cargo test --workspace --all-targets
       - name: Run doc tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --doc
+        run: cargo test --workspace --doc
 
   # Checks that the crate actually builds without `std`. To do this,
   # we take a target (`thumbv7m-none-eabi`) that does not have `std` support.
@@ -105,16 +76,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.nightly }}
-          profile: minimal
-          override: true
-          target: thumbv7m-none-eabi
-      - name: Generate lockfile
-        uses: actions-rs/cargo@v1
-        with:
-          command: generate-lockfile
+          targets: thumbv7m-none-eabi
 
       - name: Cache cargo build
         uses: actions/cache@v3
@@ -124,10 +89,7 @@ jobs:
           restore-keys: ${{ runner.os }}-nostd-cargo
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --lib --target thumbv7m-none-eabi -Z avoid-dev-deps
+        run: cargo build --lib --target thumbv7m-none-eabi -Z avoid-dev-deps
 
   document:
     if: github.event_name == 'push'
@@ -141,15 +103,9 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          profile: minimal
-          override: true
-      - name: Generate lockfile
-        uses: actions-rs/cargo@v1
-        with:
-          command: generate-lockfile
 
       - name: Cache cargo build
         uses: actions/cache@v3
