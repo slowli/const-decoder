@@ -1,5 +1,7 @@
 //! `Decoder` and closely related types.
 
+use compile_fmt::{compile_assert, compile_panic, fmt, clip};
+
 use crate::wrappers::{SkipWhitespace, Skipper};
 
 /// Custom encoding scheme based on a certain alphabet (mapping between a subset of ASCII chars
@@ -48,7 +50,10 @@ impl Encoding {
             16 => 4,
             32 => 5,
             64 => 6,
-            _ => panic!("Invalid alphabet length; must be one of 2, 4, 8, 16, 32, or 64"),
+            other => compile_panic!(
+                "Invalid alphabet length ", other => fmt::<usize>(),
+                "; must be one of 2, 4, 8, 16, 32, or 64"
+            ),
         };
 
         let mut table = [Self::NO_MAPPING; 128];
@@ -56,11 +61,15 @@ impl Encoding {
         let mut index = 0;
         while index < alphabet_bytes.len() {
             let byte = alphabet_bytes[index];
-            assert!(byte < 0x80, "Non-ASCII alphabet character");
+            compile_assert!(
+                byte < 0x80,
+                "Alphabet '", alphabet => clip(64, ""), "' contains non-ASCII character at ",
+                index => fmt::<usize>()
+            );
             let byte_idx = byte as usize;
-            assert!(
+            compile_assert!(
                 table[byte_idx] == Self::NO_MAPPING,
-                "Alphabet character is mentioned several times"
+                "Alphabet character '", byte as char => fmt::<char>(), "' is mentioned several times"
             );
             table[byte_idx] = index as u8;
             index += 1;
@@ -74,9 +83,9 @@ impl Encoding {
 
     const fn lookup(&self, ascii_char: u8) -> u8 {
         let mapping = self.table[ascii_char as usize];
-        assert!(
+        compile_assert!(
             mapping != Self::NO_MAPPING,
-            "Character is not present in the alphabet"
+            "Character '", ascii_char as char => fmt::<char>(), "' is not present in the alphabet"
         );
         mapping
     }
@@ -92,7 +101,9 @@ impl HexDecoderState {
             b'0'..=b'9' => val - b'0',
             b'A'..=b'F' => val - b'A' + 10,
             b'a'..=b'f' => val - b'a' + 10,
-            _ => panic!("Invalid character in input; expected a hex digit"),
+            _ => compile_panic!(
+                "Invalid character '", val as char => fmt::<char>(), "' in input; expected a hex digit"
+            ),
         }
     }
 
@@ -282,21 +293,27 @@ impl Decoder {
             let update = state.update(input[in_index]);
             state = update.0;
             if let Some(byte) = update.1 {
-                assert!(
-                    out_index < N,
-                    "Output overflow: the input decodes to more bytes than specified \
-                     as the output length"
-                );
-                bytes[out_index] = byte;
+                if out_index < N {
+                    bytes[out_index] = byte;
+                }
                 out_index += 1;
             }
             in_index += 1;
         }
-        assert!(
-            out_index == N,
-            "Output underflow: the input was decoded into less bytes than specified \
-             as the output length"
+
+        compile_assert!(
+            out_index <= N,
+            "Output overflow: the input decodes to ", out_index => fmt::<usize>(),
+            " bytes, while type inference implies ",  N => fmt::<usize>(), ". \
+            Either fix the input or change the output buffer length correspondingly"
         );
+        compile_assert!(
+            out_index == N,
+            "Output underflow: the input decodes to ", out_index => fmt::<usize>(),
+            " bytes, while type inference implies ", N => fmt::<usize>(), ". \
+            Either fix the input or change the output buffer length correspondingly"
+        );
+
         assert!(
             state.is_final(),
             "Left-over state after processing input. This usually means that the input \

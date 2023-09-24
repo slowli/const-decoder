@@ -73,9 +73,21 @@ fn base64_codec_in_runtime() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "Character '-' is not present in the alphabet")]
 fn mixed_base64_alphabet_leads_to_panic() {
     Decoder::Base64.decode::<6>(b"Pj4-Pz8/");
+}
+
+#[test]
+#[should_panic(expected = "input decodes to 6 bytes, while type inference implies 3.")]
+fn input_length_overflow() {
+    Decoder::Base64.decode::<3>(b"Pj4+Pz8/");
+}
+
+#[test]
+#[should_panic(expected = "input decodes to 6 bytes, while type inference implies 16.")]
+fn input_length_underflow() {
+    Decoder::Base64.decode::<16>(b"Pj4+Pz8/");
 }
 
 const BECH32: Decoder = Decoder::custom("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
