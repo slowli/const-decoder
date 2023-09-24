@@ -9,6 +9,12 @@ fn hex_codec() {
 }
 
 #[test]
+fn hex_codec_with_macro() {
+    const KEY: &[u8] = &decode!(Decoder::Hex, b"1234567f");
+    assert_eq!(KEY, [0x12, 0x34, 0x56, 0x7f]);
+}
+
+#[test]
 #[should_panic]
 fn hex_encoding_with_odd_number_of_digits() {
     let _: [u8; 1] = Decoder::Hex.decode(b"012");
@@ -18,6 +24,18 @@ fn hex_encoding_with_odd_number_of_digits() {
 fn hex_codec_with_whitespace() {
     const KEY: [u8; 4] = Decoder::Hex.skip_whitespace().decode(b"12\n34  56\t7f");
     assert_eq!(KEY, [0x12, 0x34, 0x56, 0x7f]);
+}
+
+#[test]
+fn skipping_whitespace_with_macro() {
+    const KEY: &[u8] = &decode!(
+        Decoder::Hex.skip_whitespace(),
+        b"01234567  89abcdef \
+          fedcba98  76543210",
+    );
+    assert_eq!(KEY.len(), 16);
+    assert_eq!(KEY[0], 1);
+    assert_eq!(KEY[15], 0x10);
 }
 
 #[test]
@@ -36,6 +54,12 @@ fn base64_codec_in_compile_time() {
     for &(actual, expected) in SAMPLES {
         assert_eq!(actual, expected);
     }
+}
+
+#[test]
+fn base64_codec_with_macro() {
+    const TEST: &[u8] = &decode!(Decoder::Base64, b"VGVzdCBzdHJpbmc=");
+    assert_eq!(TEST, b"Test string");
 }
 
 #[test]
@@ -112,6 +136,15 @@ fn bech32_encoding() {
 }
 
 #[test]
+fn bech32_codec_with_macro() {
+    const TEST: &[u8] = &decode!(BECH32, b"w508d6qejxtdg4y5r3zarvary0c5xw7k");
+    assert_eq!(
+        TEST,
+        decode!(Decoder::Hex, b"751e76e8199196d454941c45d1b3a323f1433bd6")
+    );
+}
+
+#[test]
 #[should_panic]
 fn bech32_encoding_with_invalid_padding() {
     // The last char `l = 31` is too large.
@@ -133,4 +166,10 @@ fn octal_encoding() {
     const BASE8: Decoder = Decoder::custom("01234567");
     assert_eq!(BASE8.decode::<1>(b"766"), [0o_76 * 4 + 3]);
     assert_eq!(BASE8.decode::<3>(b"35145661"), [116, 203, 177]);
+}
+
+#[test]
+fn octal_codec_in_macro() {
+    const TEST: &[u8] = &decode!(Decoder::custom("01234567"), b"35145661");
+    assert_eq!(TEST, [116, 203, 177]);
 }

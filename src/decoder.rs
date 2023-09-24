@@ -1,6 +1,6 @@
 //! `Decoder` and closely related types.
 
-use compile_fmt::{compile_assert, compile_panic, fmt, clip};
+use compile_fmt::{clip, compile_assert, compile_panic, fmt};
 
 use crate::wrappers::{SkipWhitespace, Skipper};
 
@@ -320,5 +320,29 @@ impl Decoder {
              is incorrect (e.g., an odd number of hex digits)."
         );
         bytes
+    }
+
+    pub(crate) const fn do_decode_len(self, input: &[u8], skipper: Option<Skipper>) -> usize {
+        let mut in_index = 0;
+        let mut out_index = 0;
+        let mut state = self.new_state();
+
+        while in_index < input.len() {
+            if let Some(skipper) = skipper {
+                let new_in_index = skipper.skip(input, in_index);
+                if new_in_index != in_index {
+                    in_index = new_in_index;
+                    continue;
+                }
+            }
+
+            let update = state.update(input[in_index]);
+            state = update.0;
+            if update.1.is_some() {
+                out_index += 1;
+            }
+            in_index += 1;
+        }
+        out_index
     }
 }

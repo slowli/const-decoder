@@ -5,15 +5,15 @@ use base64::{
 use bech32::{ToBase32, Variant};
 use rand::{thread_rng, RngCore};
 
-use const_decoder::{Decoder, Pem};
+use const_decoder::{decode, Decoder, Pem};
 
 #[test]
 fn reading_from_file_works() {
     const RAW_INPUT: &[u8] = include_bytes!("certificate.crt");
-    const CERT: [u8; 888] = Pem::decode(RAW_INPUT);
+    const CERT: &[u8] = &decode!(Pem, RAW_INPUT);
 
     let parsed = pem::parse(RAW_INPUT).unwrap();
-    assert_eq!(CERT, *parsed.contents());
+    assert_eq!(CERT, parsed.contents());
 }
 
 fn fuzz_hex_decoder<const N: usize>(samples: usize) {
