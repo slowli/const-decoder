@@ -29,6 +29,11 @@ const SECRET_KEY: [u8; 64] = Decoder::Hex.decode(
     b"9e55d1e1aa1f455b8baad9fdf975503655f8b359d542fa7e4ce84106d625b352\
       06fac1f22240cffd637ead6647188429fafda9c9cb7eae43386ac17f61115075",
 );
+// Alternatively, you can use `decode!` macro:
+const PUBLIC_KEY: &[u8] = &const_decoder::decode!(
+    Decoder::Hex,
+    b"06fac1f22240cffd637ead6647188429fafda9c9cb7eae43386ac17f61115075",
+);
 ```
 
 [Bech32] encoding:
