@@ -103,6 +103,24 @@ fn mixed_base64_alphabet_leads_to_panic() {
 }
 
 #[test]
+#[should_panic(expected = "Invalid alphabet length 5; must be one of 2, 4, 8, 16, 32, or 64")]
+fn invalid_alphabet_length() {
+    Decoder::custom("what?");
+}
+
+#[test]
+#[should_panic(expected = "Alphabet 'teß' contains non-ASCII character at position 2")]
+fn non_ascii_char_in_alphabet() {
+    Decoder::custom("teß");
+}
+
+#[test]
+#[should_panic(expected = "Alphabet character 'a' is mentioned several times")]
+fn duplicate_char_in_alphabet() {
+    Decoder::custom("alphabet");
+}
+
+#[test]
 #[should_panic(expected = "input decodes to 6 bytes, while type inference implies 3.")]
 fn input_length_overflow() {
     Decoder::Base64.decode::<3>(b"Pj4+Pz8/");

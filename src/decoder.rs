@@ -63,7 +63,7 @@ impl Encoding {
             let byte = alphabet_bytes[index];
             compile_assert!(
                 byte < 0x80,
-                "Alphabet '", alphabet => clip(64, ""), "' contains non-ASCII character at ",
+                "Alphabet '", alphabet => clip(64, ""), "' contains non-ASCII character at position ",
                 index => fmt::<usize>()
             );
             let byte_idx = byte as usize;
