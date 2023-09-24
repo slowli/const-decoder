@@ -97,7 +97,7 @@ fn base64_codec_in_runtime() {
 }
 
 #[test]
-#[should_panic(expected = "Character '-' is not present in the alphabet")]
+#[should_panic(expected = "Character '-' at position 3 is not a part of the decoder alphabet")]
 fn mixed_base64_alphabet_leads_to_panic() {
     Decoder::Base64.decode::<6>(b"Pj4-Pz8/");
 }
@@ -109,7 +109,7 @@ fn invalid_alphabet_length() {
 }
 
 #[test]
-#[should_panic(expected = "Alphabet 'teß' contains non-ASCII character at position 2")]
+#[should_panic(expected = "String 'teß' contains non-ASCII chars; first at position 2")]
 fn non_ascii_char_in_alphabet() {
     Decoder::custom("teß");
 }
@@ -118,6 +118,18 @@ fn non_ascii_char_in_alphabet() {
 #[should_panic(expected = "Alphabet character 'a' is mentioned several times")]
 fn duplicate_char_in_alphabet() {
     Decoder::custom("alphabet");
+}
+
+#[test]
+#[should_panic(expected = "Non-ASCII character with decimal code 223")]
+fn non_ascii_input() {
+    Decoder::Base64.decode::<6>(b"P\xDF+Pz8/");
+}
+
+#[test]
+#[should_panic(expected = "Character 'u' at position 7 is not a hex digit")]
+fn invalid_char_in_hex_input() {
+    Decoder::Hex.decode::<4>(b"c0ffeecu");
 }
 
 #[test]
