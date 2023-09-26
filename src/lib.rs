@@ -6,14 +6,11 @@
 //! and [`Pem`] types providing its variations with slightly different properties.
 //! (For example, `Pem` allows to parse PEM files.)
 //!
+//! Methods in base types require specifying the length of the output byte array, either in its type,
+//! or using the turbofish syntax (see the examples below). To avoid this, you can instead use
+//! the [`decode!`] macro.
+//!
 //! Conversions are primarily useful for testing, but can be used in other contexts as well.
-//!
-//! # Limitations
-//!
-//! - Length of the output byte array needs to be specified, either in its type, or using
-//!   turbofish syntax (see the examples below). This could be seen as a positive in some cases;
-//!   e.g., keys in cryptography frequently have an expected length, and specifying it can prevent
-//!   key mix-up.
 //!
 //! # Alternatives
 //!
@@ -40,15 +37,29 @@
 //! );
 //! ```
 //!
-//! [`include_bytes!`] macro works as well, although it is necessary to specify bytes length.
+//! Same input string decoded using [`decode!`]:
 //!
 //! ```
-//! # use const_decoder::Pem;
+//! use const_decoder::{decode, Decoder};
+//!
+//! const SECRET_KEY: &[u8] = &decode!(
+//!     Decoder::Hex,
+//!     b"9e55d1e1aa1f455b8baad9fdf975503655f8b359d542fa7e4ce84106d625b352\
+//!       06fac1f22240cffd637ead6647188429fafda9c9cb7eae43386ac17f61115075",
+//! );
+//! ```
+//!
+//! Note how specifying the output length is avoided by placing the `decode!` output behind a reference.
+//!
+//! [`include_bytes!`] macro works as well.
+//!
+//! ```
+//! # use const_decoder::{decode, Pem};
 //! # // We don't actually want to access FS in tests, so we hack the `include_bytes` macro.
 //! # macro_rules! include_bytes {
 //! #     ($path:tt) => { &[b'A'; 1184] };
 //! # }
-//! const CERT: &[u8] = &Pem::decode::<888>(include_bytes!("certificate.crt"));
+//! const CERT: &[u8] = &decode!(Pem, include_bytes!("certificate.crt"));
 //! ```
 //!
 //! Naturally, all code works in the runtime context as well.
@@ -94,12 +105,14 @@
 #![allow(clippy::must_use_candidate, clippy::shadow_unrelated)]
 
 mod decoder;
+mod macros;
 #[cfg(test)]
 mod tests;
 mod wrappers;
 
 pub use crate::{
     decoder::{Decoder, Encoding},
+    macros::DecoderWrapper,
     wrappers::{Pem, SkipWhitespace},
 };
 

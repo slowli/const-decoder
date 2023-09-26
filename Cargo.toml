@@ -11,6 +11,11 @@ categories = ["encoding", "no-std"]
 description = "Constant functions for converting hex- and base64-encoded strings into bytes"
 repository = "https://github.com/slowli/const-decoder"
 
+[dependencies.compile-fmt]
+git = "https://github.com/slowli/compile-fmt.git"
+version = "0.1.0"
+rev = "0f0c1ab3e90c854beede0ceaa87ce0d96e209a7f"
+
 [dev-dependencies]
 base64 = "0.21.0"
 bech32 = "0.9.0"

@@ -36,11 +36,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "compile-fmt"
+version = "0.1.0"
+source = "git+https://github.com/slowli/compile-fmt.git?rev=0f0c1ab3e90c854beede0ceaa87ce0d96e209a7f#0f0c1ab3e90c854beede0ceaa87ce0d96e209a7f"
+
+[[package]]
 name = "const-decoder"
 version = "0.3.0"
 dependencies = [
  "base64",
  "bech32",
+ "compile-fmt",
  "doc-comment",
  "hex",
  "pem",
