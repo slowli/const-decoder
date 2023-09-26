@@ -5,6 +5,11 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- Add `decode!` macro that allows to skip specifying output length.
+- Make panic messages more informative by including context information.
+
 ### Changed
 
 - Bump MSRV to 1.66.
