@@ -15,7 +15,7 @@ fn hex_codec_with_macro() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "Left-over state after processing input")]
 fn hex_encoding_with_odd_number_of_digits() {
     let _: [u8; 1] = Decoder::Hex.decode(b"012");
 }
@@ -175,7 +175,7 @@ fn bech32_codec_with_macro() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "Left-over state after processing input")]
 fn bech32_encoding_with_invalid_padding() {
     // The last char `l = 31` is too large.
     let _: [u8; 32] = BECH32.decode::<32>(b"rp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3l");
