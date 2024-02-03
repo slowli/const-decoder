@@ -31,7 +31,3 @@ allow-wildcard-paths = true
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-allow-git = [
-  # Temporarily allow relying on an unpiblished version of `compile-fmt`
-  "https://github.com/slowli/compile-fmt.git",
-]

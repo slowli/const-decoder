@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/slowli/const-decoder/workflows/CI/badge.svg?branch=master)](https://github.com/slowli/const-decoder/actions)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue)](https://github.com/slowli/const-decoder#license)
-![rust 1.66+ required](https://img.shields.io/badge/rust-1.66+-blue.svg?label=Required%20Rust)
+![rust 1.67+ required](https://img.shields.io/badge/rust-1.67+-blue.svg?label=Required%20Rust)
 
 **Documentation:** [![Docs.rs](https://img.shields.io/docsrs/const-decoder)](https://docs.rs/const-decoder/)
 [![crate docs (master)](https://img.shields.io/badge/master-yellow.svg?label=docs)](https://slowli.github.io/const-decoder/const_decoder/)

@@ -3,7 +3,7 @@ name = "const-decoder"
 version = "0.3.0"
 authors = ["Alex Ostrovski <ostrovski.alex@gmail.com>"]
 edition = "2021"
-rust-version = "1.66"
+rust-version = "1.67"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 keywords = ["base64", "hex", "decoding", "constant-evaluation"]
@@ -11,13 +11,11 @@ categories = ["encoding", "no-std"]
 description = "Constant functions for converting hex- and base64-encoded strings into bytes"
 repository = "https://github.com/slowli/const-decoder"
 
-[dependencies.compile-fmt]
-git = "https://github.com/slowli/compile-fmt.git"
-version = "0.1.0"
-rev = "0f0c1ab3e90c854beede0ceaa87ce0d96e209a7f"
+[dependencies]
+compile-fmt = "0.1.0"
 
 [dev-dependencies]
-base64 = "0.21.5"
+base64 = "0.21.7"
 bech32 = "0.9.0"
 doc-comment = "0.3.3"
 hex = "0.4.3"
