@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Constant functions for converting hex- and base64-encoded strings into bytes. Works on stable Rust and in no-std environments. Base-(2,4,8,16,32,64) encodings with custom alphabets are supported as well via `Encoding`."><title>const_decoder - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="const_decoder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../const_decoder/index.html">const_decoder</a><span class="version">0.3.0</span></h2></div><div class="sidebar-elems"><ul class="block">
+            <li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></section></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../const_decoder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">const_decoder</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/const_decoder/lib.rs.html#1-120">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Constant functions for converting hex- and base64-encoded strings into bytes.
+Works on stable Rust and in no-std environments. Base-(2,4,8,16,32,64) encodings with
+custom alphabets are supported as well via <a href="struct.Encoding.html" title="struct const_decoder::Encoding"><code>Encoding</code></a>.</p>
+<p><a href="enum.Decoder.html" title="enum const_decoder::Decoder"><code>Decoder</code></a> is the base type encapsulating decoding logic, with <a href="struct.SkipWhitespace.html" title="struct const_decoder::SkipWhitespace"><code>SkipWhitespace</code></a>
+and <a href="struct.Pem.html" title="struct const_decoder::Pem"><code>Pem</code></a> types providing its variations with slightly different properties.
+(For example, <code>Pem</code> allows to parse PEM files.)</p>
+<p>Methods in base types require specifying the length of the output byte array, either in its type,
+or using the turbofish syntax (see the examples below). To avoid this, you can instead use
+the <a href="macro.decode.html" title="macro const_decoder::decode"><code>decode!</code></a> macro.</p>
+<p>Conversions are primarily useful for testing, but can be used in other contexts as well.</p>
+<h2 id="alternatives"><a href="#alternatives">Alternatives</a></h2>
+<p><a href="https://crates.io/crates/hex_literal"><code>hex-literal</code></a> and <a href="https://crates.io/crates/binary_macros"><code>binary_macros</code></a> crates expose similar functionality
+as procedural macros. Because of this, macros cannot be used in no-std environments,
+while this approach can.</p>
+<p>In the longer-term (after stabilizing <a href="https://github.com/rust-lang/rust/issues/57349">const mutable refs</a>, etc.)
+it should become possible to use “ordinary” encoding crates, such as <a href="https://crates.io/crates/hex"><code>hex</code></a>.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_decoder::Decoder;
+<span class="comment">// An Ed25519 secret key.
+</span><span class="kw">const </span>SECRET_KEY: [u8; <span class="number">64</span>] = Decoder::Hex.decode(
+    <span class="string">b"9e55d1e1aa1f455b8baad9fdf975503655f8b359d542fa7e4ce84106d625b352\
+      06fac1f22240cffd637ead6647188429fafda9c9cb7eae43386ac17f61115075"</span>,
+);</code></pre></div>
+<p>Same input string decoded using <a href="macro.decode.html" title="macro const_decoder::decode"><code>decode!</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>const_decoder::{decode, Decoder};
+
+<span class="kw">const </span>SECRET_KEY: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span><span class="macro">decode!</span>(
+    Decoder::Hex,
+    <span class="string">b"9e55d1e1aa1f455b8baad9fdf975503655f8b359d542fa7e4ce84106d625b352\
+      06fac1f22240cffd637ead6647188429fafda9c9cb7eae43386ac17f61115075"</span>,
+);</code></pre></div>
+<p>Note how specifying the output length is avoided by placing the <code>decode!</code> output behind a reference.</p>
+<p><a href="https://doc.rust-lang.org/1.76.0/core/macro.include_bytes.html" title="macro core::include_bytes"><code>include_bytes!</code></a> macro works as well.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const </span>CERT: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span><span class="macro">decode!</span>(Pem, <span class="macro">include_bytes!</span>(<span class="string">"certificate.crt"</span>));</code></pre></div>
+<p>Naturally, all code works in the runtime context as well.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>public_key: [u8; <span class="number">32</span>] = Decoder::Hex.decode(
+    <span class="string">b"06fac1f22240cffd637ead6647188429fafda9c9cb7eae43386ac17f61115075"</span>,
+);
+<span class="kw">let </span>other_public_key: [u8; <span class="number">32</span>] = Decoder::Base64.decode(
+    <span class="string">b"6IcUt5J4tArK8SR8SpBZb8Rp7E7kyvaTfv9N8WlOinw="</span>,
+);</code></pre></div>
+<h3 id="compile-time-errors"><a href="#compile-time-errors">Compile-time errors</a></h3>
+<p>The code will fail to compile if there is an error in the literal:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="comment">// The provided hex string is too short
+</span><span class="kw">const </span>BOGUS: [u8; <span class="number">32</span>] = Decoder::Hex.decode(<span class="string">b"c0ffee"</span>);</code></pre></div>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="comment">// The provided hex string is too long
+</span><span class="kw">const </span>BOGUS: [u8; <span class="number">3</span>] = Decoder::Hex.decode(<span class="string">b"c01dbeef"</span>);</code></pre></div>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="comment">// The provided string contains invalid chars
+</span><span class="kw">const </span>BOGUS: [u8; <span class="number">5</span>] = Decoder::Hex.decode(<span class="string">b"c0ffeecup"</span>);</code></pre></div>
+</div></details><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.DecoderWrapper"><code>pub use crate::macros::DecoderWrapper;</code></div></li></ul><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2><ul class="item-table"><li><div class="item-name"><a class="macro" href="macro.decode.html" title="macro const_decoder::decode">decode</a></div><div class="desc docblock-short">Computes the output length in compile time and decodes the input. This allows to skip specifying
+output length manually.</div></li></ul><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Encoding.html" title="struct const_decoder::Encoding">Encoding</a></div><div class="desc docblock-short">Custom encoding scheme based on a certain alphabet (mapping between a subset of ASCII chars
+and digits in <code>0..P</code>, where <code>P</code> is a power of 2).</div></li><li><div class="item-name"><a class="struct" href="struct.Pem.html" title="struct const_decoder::Pem">Pem</a></div><div class="desc docblock-short">Decoder for the PEM file format (Base64 with additional header / trailer lines).</div></li><li><div class="item-name"><a class="struct" href="struct.SkipWhitespace.html" title="struct const_decoder::SkipWhitespace">SkipWhitespace</a></div><div class="desc docblock-short"><a href="enum.Decoder.html" title="enum const_decoder::Decoder"><code>Decoder</code></a> wrapper that skips whitespace during decoding instead of panicking.</div></li></ul><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.Decoder.html" title="enum const_decoder::Decoder">Decoder</a></div><div class="desc docblock-short">Decoder of a human-friendly encoding, such as hex or base64, into bytes.</div></li></ul></section></div></main></body></html>
