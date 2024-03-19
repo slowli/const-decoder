@@ -2,7 +2,7 @@ use base64::{
     engine::general_purpose::{STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD},
     Engine as _,
 };
-use bech32::{ToBase32, Variant};
+use bech32::{Bech32, Hrp};
 use rand::{thread_rng, RngCore};
 
 use const_decoder::{decode, Decoder, Pem};
@@ -106,7 +106,8 @@ fn fuzz_bech32_decoder<const N: usize>(samples: usize) {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
 
-        let encoded = bech32::encode("bc", bytes.to_base32(), Variant::Bech32).unwrap();
+        let hrp = Hrp::parse("bc").unwrap();
+        let encoded = bech32::encode::<Bech32>(hrp, &bytes).unwrap();
         let data_part = &encoded.as_bytes()[3..(encoded.len() - 6)];
         let decoded = BECH32.decode::<N>(data_part);
         assert_eq!(decoded, bytes);
