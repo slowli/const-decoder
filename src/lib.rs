@@ -104,17 +104,17 @@
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::must_use_candidate, clippy::shadow_unrelated)]
 
-mod decoder;
-mod macros;
-#[cfg(test)]
-mod tests;
-mod wrappers;
-
 pub use crate::{
     decoder::{Decoder, Encoding},
     macros::DecoderWrapper,
     wrappers::{Pem, SkipWhitespace},
 };
+
+mod decoder;
+mod macros;
+#[cfg(test)]
+mod tests;
+mod wrappers;
 
 #[cfg(doctest)]
 doc_comment::doctest!("../README.md");

@@ -3,9 +3,8 @@ use base64::{
     Engine as _,
 };
 use bech32::{Bech32, Hrp};
-use rand::{thread_rng, RngCore};
-
 use const_decoder::{decode, Decoder, Pem};
+use rand::{thread_rng, RngCore};
 
 #[test]
 fn reading_from_file_works() {
