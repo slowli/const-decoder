@@ -43,7 +43,7 @@ checksum = "bed69047ed42e52c7e38d6421eeb8ceefb4f2a2b52eed59137f7bad7908f6800"
 
 [[package]]
 name = "const-decoder"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "base64",
  "bech32",

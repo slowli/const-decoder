@@ -5,6 +5,8 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## 0.4.0 - 2024-09-29
+
 ### Added
 
 - Add `decode!` macro that allows to skip specifying output length.
