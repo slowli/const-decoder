@@ -98,23 +98,23 @@
 
 #![no_std]
 // Documentation settings.
-#![doc(html_root_url = "https://docs.rs/const-decoder/0.3.0")]
+#![doc(html_root_url = "https://docs.rs/const-decoder/0.4.0")]
 // Linter settings.
 #![warn(missing_debug_implementations, missing_docs, bare_trait_objects)]
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::must_use_candidate, clippy::shadow_unrelated)]
-
-mod decoder;
-mod macros;
-#[cfg(test)]
-mod tests;
-mod wrappers;
 
 pub use crate::{
     decoder::{Decoder, Encoding},
     macros::DecoderWrapper,
     wrappers::{Pem, SkipWhitespace},
 };
+
+mod decoder;
+mod macros;
+#[cfg(test)]
+mod tests;
+mod wrappers;
 
 #[cfg(doctest)]
 doc_comment::doctest!("../README.md");
