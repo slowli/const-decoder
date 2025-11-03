@@ -5,6 +5,10 @@ The project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to 1.83.
+
 ## 0.4.0 - 2024-09-29
 
 ### Added
