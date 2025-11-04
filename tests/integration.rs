@@ -4,7 +4,7 @@ use base64::{
 };
 use bech32::{Bech32, Hrp};
 use const_decoder::{decode, Decoder, Pem};
-use rand::{thread_rng, RngCore};
+use rand::RngCore;
 
 #[test]
 fn reading_from_file_works() {
@@ -18,7 +18,7 @@ fn reading_from_file_works() {
 fn fuzz_hex_decoder<const N: usize>(samples: usize) {
     const CUSTOM_HEX: Decoder = Decoder::custom("0123456789abcdef");
 
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
@@ -46,7 +46,7 @@ fn hex_decoder_mini_fuzz() {
 }
 
 fn fuzz_base64_decoder<const N: usize>(samples: usize) {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
@@ -72,7 +72,7 @@ fn base64_decoder_mini_fuzz() {
 }
 
 fn fuzz_base64url_decoder<const N: usize>(samples: usize) {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
@@ -100,7 +100,7 @@ fn base64url_decoder_mini_fuzz() {
 const BECH32: Decoder = Decoder::custom("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
 
 fn fuzz_bech32_decoder<const N: usize>(samples: usize) {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     for _ in 0..samples {
         let mut bytes = [0_u8; N];
         rng.fill_bytes(&mut bytes);
